@@ -1,0 +1,24 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+body {
+  background-color: #f0f2f5; /* Light gray background like Facebook/LinkedIn */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Centering Container Override */
+.container {
+  max-width: 900px !important;
+}
+
+/* Card Styling */
+.card {
+  border: none;
+  border-radius: 12px;
+  transition: transform 0.2s;
+}
+
+/* Navbar Styling */
+.navbar {
+  background: #1a1a1a !important; /* Darker black */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
