@@ -22,13 +22,11 @@ const CreateModal = ({ show, handleClose, refreshFeed }) => {
   const token = user?.token;
 
   // Handle File Upload (Convert to Base64)
-  const handleImageUpload = (e) => {
+ const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 2000000) { // Limit to 2MB
-         setError("Image size too large! Max 2MB.");
-         return;
-      }
+    
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setImage(reader.result); // This converts image to string

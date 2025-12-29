@@ -1,14 +1,15 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const cors = require('cors'); // <--- 1. Import CORS
+const cors = require('cors');
 
 dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors()); // <--- 2. Use CORS (Allows frontend to talk to backend)
-app.use(express.json({ limit: '50mb' })); // Increased limit for images
+app.use(cors());
+app.use(express.json({ limit: '50mb' })); // Allows large JSON payloads (images)
+app.use(express.urlencoded({ limit: '50mb', extended: true })); // <--- ADDED THIS (Vital for large uploads)
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
