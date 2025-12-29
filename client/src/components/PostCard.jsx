@@ -127,7 +127,6 @@ const PostCard = ({ post, refreshFeed }) => {
 
           </div>
           
-         // ... inside the return statement ...
 
 <div className="d-flex gap-2">
   <Button variant="light" size="sm" onClick={() => setShowComments(!showComments)}>
