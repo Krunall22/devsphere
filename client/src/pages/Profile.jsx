@@ -24,11 +24,11 @@ const Profile = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
       // 1. Get Fresh User Data (To get accurate bookmarks list)
-      const { data: userData } = await axios.get("http://localhost:5000/api/auth/profile", config);
+      const { data: userData } = await axios.get("https://devsphere-gz00.onrender.com/api/auth/profile", config);
       setUser({ ...userData, token }); // Keep token
 
       // 2. Get All Posts
-      const { data: allFeed } = await axios.get("http://localhost:5000/api/content/feed");
+      const { data: allFeed } = await axios.get("https://devsphere-gz00.onrender.com/api/content/feed");
 
       // 3. Filter My Posts
       const myPosts = allFeed.filter(p => p.user?._id === userData._id);

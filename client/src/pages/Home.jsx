@@ -13,7 +13,7 @@ const Home = () => {
 
   const fetchFeed = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/api/content/feed");
+      const { data } = await axios.get("https://devsphere-gz00.onrender.com/api/content/feed");
       setFeed(data);
       setLoading(false);
     } catch (error) {

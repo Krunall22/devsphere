@@ -21,7 +21,7 @@ const PostCard = ({ post, refreshFeed }) => {
   const handleVote = async (action) => {
     if (!token) return alert("Please login!");
     try {
-      await axios.put(`http://localhost:5000/api/content/posts/${post._id}/vote`, { action }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.put(`https://devsphere-gz00.onrender.com/api/content/posts/${post._id}/vote`, { action }, { headers: { Authorization: `Bearer ${token}` } });
       refreshFeed(); // Reload to show new numbers
     } catch (err) { alert("Error voting"); }
   };
@@ -29,7 +29,7 @@ const PostCard = ({ post, refreshFeed }) => {
   const handleBookmark = async () => {
     if (!token) return alert("Please login!");
     try {
-      const { data: updatedBookmarks } = await axios.put(`http://localhost:5000/api/content/posts/${post._id}/bookmark`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      const { data: updatedBookmarks } = await axios.put(`https://devsphere-gz00.onrender.com/api/content/posts/${post._id}/bookmark`, {}, { headers: { Authorization: `Bearer ${token}` } });
       
       // Update Local Storage immediately
       const updatedUser = { ...user, bookmarks: updatedBookmarks };
@@ -42,7 +42,7 @@ const PostCard = ({ post, refreshFeed }) => {
     e.preventDefault();
     if (!commentText.trim()) return;
     try {
-      await axios.post(`http://localhost:5000/api/content/posts/${post._id}/comment`, { text: commentText }, { headers: { Authorization: `Bearer ${token}` } });
+      await axios.post(`https://devsphere-gz00.onrender.com/api/content/posts/${post._id}/comment`, { text: commentText }, { headers: { Authorization: `Bearer ${token}` } });
       setCommentText("");
       refreshFeed();
     } catch (err) { alert("Error commenting"); }

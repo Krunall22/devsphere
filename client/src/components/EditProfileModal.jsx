@@ -27,7 +27,7 @@ const EditProfileModal = ({ show, handleClose, user, refreshUser }) => {
       const token = JSON.parse(localStorage.getItem("userInfo")).token;
       const config = { headers: { Authorization: `Bearer ${token}` } };
       
-      const { data } = await axios.put("http://localhost:5000/api/auth/profile", {
+      const { data } = await axios.put("https://devsphere-gz00.onrender.com/api/auth/profile", {
         name, email, profilePic: pic, password
       }, config);
 

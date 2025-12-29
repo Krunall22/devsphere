@@ -12,8 +12,9 @@ const PollCard = ({ poll, refreshFeed }) => {
   const handleVote = async (index) => {
     if (!token) return alert("Please login to vote!");
     try {
+      // ✅ UPDATED URL: Points to your Live Backend on Render
       await axios.put(
-        `http://localhost:5000/api/content/polls/${poll._id}/vote`,
+        `https://devsphere-gz00.onrender.com/api/content/polls/${poll._id}/vote`,
         { optionIndex: index },
         { headers: { Authorization: `Bearer ${token}` } }
       );

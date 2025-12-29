@@ -16,7 +16,7 @@ const SinglePost = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const { data } = await axios.get(`http://localhost:5000/api/content/view/${id}`);
+        const { data } = await axios.get(`https://devsphere-gz00.onrender.com/api/content/view/${id}`);
         setContent(data);
         setLoading(false);
       } catch (err) {

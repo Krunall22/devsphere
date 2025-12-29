@@ -58,14 +58,14 @@ const CreateModal = ({ show, handleClose, refreshFeed }) => {
 
       if (key === "post") {
         await axios.post(
-          "http://localhost:5000/api/content/posts", 
+          "https://devsphere-gz00.onrender.com/api/content/posts", 
           { title, description: desc, tags, image }, // <--- Sending Image
           config
         );
       } else {
         const cleanOptions = options.filter((opt) => opt.trim() !== "");
         if (cleanOptions.length < 2) throw new Error("Poll needs at least 2 options");
-        await axios.post("http://localhost:5000/api/content/polls", { question, options: cleanOptions }, config);
+        await axios.post("https://devsphere-gz00.onrender.com/api/content/polls", { question, options: cleanOptions }, config);
       }
 
       setLoading(false);
