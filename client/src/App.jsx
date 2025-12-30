@@ -1,17 +1,18 @@
 import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext"; // Ensure path is correct
+import { AuthProvider } from "./context/AuthContext"; 
 import Navbar from "./components/Navbar"; 
 import Feed from "./pages/Feed";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CreatePost from "./pages/CreatePost";
+import Profile from "./pages/Profile"; // 👤 Ensure you have this file in your pages folder
 import AdminLayout from "./admin/AdminLayout";
 import AdminLogin from "./admin/pages/AdminLogin";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 
 function App() {
   return (
-    <AuthProvider> {/* 🛡️ This fixes the crash in image_12896c.png */}
+    <AuthProvider>
       <Router>
         <Routes>
           {/* Public Area */}
@@ -20,6 +21,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/create" element={<CreatePost />} />
+            
+            {/* 🛡️ FIX: Added dynamic profile route */}
+            <Route path="/profile/:id" element={<Profile />} /> 
           </Route>
 
           {/* Admin Area */}
