@@ -7,15 +7,12 @@ import AuthContext from "../context/AuthContext";
 
 const Navbar = ({ onShowCreate }) => {
   const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-  
+  const navigate = useNavigate();  
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
-
   const handleSearch = async (e) => {
     const searchText = e.target.value;
     setQuery(searchText);
-
     if (searchText.length > 1) {
       try {
         const { data } = await axios.get(`https://devsphere-gz00.onrender.com/api/auth/search?q=${searchText}`, {
@@ -29,27 +26,18 @@ const Navbar = ({ onShowCreate }) => {
       setSearchResults([]);
     }
   };
-
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
-
   return (
-    // 🛡️ FIX: Use RBNavbar here
     <RBNavbar bg="dark" variant="dark" expand="lg" className="mb-4 shadow-sm" sticky="top" style={{ backgroundColor: "#1a1a1a" }}>
       <Container>
-        {/* 🛡️ FIX: Use RBNavbar.Brand here */}
         <RBNavbar.Brand as={Link} to="/" className="fw-bold fs-4">
           DevSphere 🌍
         </RBNavbar.Brand>
-
-        {/* 🛡️ FIX: Use RBNavbar.Toggle here */}
         <RBNavbar.Toggle aria-controls="navbar-nav" />
-
-        {/* 🛡️ FIX: Use RBNavbar.Collapse here */}
-        <RBNavbar.Collapse id="navbar-nav">
-          
+        <RBNavbar.Collapse id="navbar-nav">     
           <div className="mx-auto position-relative mt-2 mt-lg-0" style={{ width: "100%", maxWidth: "400px" }}>
             <Form className="d-flex">
               <FormControl
@@ -60,8 +48,7 @@ const Navbar = ({ onShowCreate }) => {
                 onChange={handleSearch}
                 style={{ backgroundColor: "#333", color: "white", border: "none" }}
               />
-            </Form>
-            
+            </Form>           
             {searchResults.length > 0 && (
               <ListGroup className="position-absolute w-100 mt-1 shadow" style={{ zIndex: 1050 }}>
                 {searchResults.map((u) => (
@@ -83,7 +70,6 @@ const Navbar = ({ onShowCreate }) => {
               </ListGroup>
             )}
           </div>
-
           <Nav className="ms-auto d-flex align-items-center gap-2 mt-3 mt-lg-0">
             {user ? (
               <>
@@ -92,15 +78,12 @@ const Navbar = ({ onShowCreate }) => {
                     Admin
                   </Button>
                 )}
-
                 <Button variant="success" onClick={onShowCreate} className="fw-bold">
                   + Create
                 </Button>
-
                 <Button as={Link} to={`/profile/${user._id}`} variant="outline-light">
                   My Profile
                 </Button>
-
                 <Button variant="outline-secondary" onClick={handleLogout}>
                   Logout
                 </Button>
