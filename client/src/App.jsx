@@ -14,25 +14,29 @@ function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          {/* Public Area */}
-          <Route element={<><Navbar /><Outlet /></>}>
-            <Route path="/" element={<Feed />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/create" element={<CreatePost />} />
-            
-            {/* 🛡️ FIX: Added dynamic profile route */}
-            <Route path="/profile/:id" element={<Profile />} /> 
-          </Route>
+      <Routes>
+  {/* Public Area */}
+  <Route element={<><Navbar /><Outlet /></>}>
+    <Route path="/" element={<Feed />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} />
+    <Route path="/create" element={<CreatePost />} />
+    
+    {/* 🛡️ FIX: Added the dynamic profile route */}
+    <Route path="/profile/:id" element={<Profile />} /> 
+  </Route>
 
-          {/* Admin Area */}
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="users" element={<AdminDashboard />} />
-          </Route>
-        </Routes>
+  {/* Admin Area */}
+  <Route path="/admin/login" element={<AdminLogin />} />
+  <Route path="/admin" element={<AdminLayout />}>
+    <Route path="dashboard" element={<AdminDashboard />} />
+    {/* 🛡️ FIX: Added the specific 'content' path */}
+    <Route path="content" element={<AdminDashboard />} /> 
+  </Route>
+
+  {/* 404 Fallback: Prevents white screen for unknown URLs */}
+  <Route path="*" element={<div style={{padding: '50px', textAlign: 'center'}}><h1>404: Page Not Found</h1><a href="/">Go Home</a></div>} />
+</Routes>
       </Router>
     </AuthProvider>
   );
