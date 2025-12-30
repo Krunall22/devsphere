@@ -1,29 +1,37 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import Header from "./components/Header"; 
+import Feed from "./pages/Feed";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Home from "./pages/Home";
-import Profile from "./pages/Profile";
-import SinglePost from "./pages/SinglePost"; // <--- Import
-import ProtectedRoute from "./components/ProtectedRoute";
+import CreatePost from "./pages/CreatePost";
+
+// IMPORT ADMIN FILES
+import AdminLayout from "./admin/AdminLayout";
+import AdminLogin from "./admin/pages/AdminLogin";
+import AdminDashboard from "./admin/pages/AdminDashboard";
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
+    <Router>
+      <Routes>
+        {/* 🌍 PUBLIC ROUTES (Blue Header) */}
+        <Route element={<><Header /><Outlet /></>}>
+          <Route path="/" element={<Feed />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/create" element={<CreatePost />} />
+        </Route>
 
-          {/* Protected Routes */}
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          
-          {/* Share Link Route (Protected - User must login to see it) */}
-          <Route path="/view/:id" element={<ProtectedRoute><SinglePost /></ProtectedRoute>} />
-        </Routes>
-      </Router>
-    </AuthProvider>
+        {/* 🔒 ADMIN ROUTES (Black Sidebar) */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="users" element={<AdminDashboard />} /> {/* Reusing for now */}
+        </Route>
+
+      </Routes>
+    </Router>
   );
 }
 

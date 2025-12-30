@@ -43,25 +43,15 @@ const registerUser = async (req, res) => {
 // @desc Login User
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (user && (await bcrypt.compare(password, user.password))) {
-      res.json({
-        _id: user.id,
-        name: user.name,
-        email: user.email,
-        profilePic: user.profilePic,
-        bookmarks: user.bookmarks,
-        token: generateToken(user.id),
-      });
-    } else {
-      res.status(401).json({ message: 'Invalid email or password' });
-    }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+  const user = await User.findOne({ email });
 
+  // 👇 ADD THIS BLOCK CHECK
+  if (user && user.isBlocked) {
+    return res.status(403).json({ message: "Your account has been blocked. Contact Admin." });
+  }
+
+  // ... rest of the login code (password check, token generation)
+};
 // @desc Update User Profile
 const updateUserProfile = async (req, res) => {
   const user = await User.findById(req.user.id);
@@ -108,5 +98,32 @@ const getUserProfile = async (req, res) => {
   }
 };
 
+// @desc Follow or Unfollow a User
+const followUser = async (req, res) => {
+  try {
+    // The person I want to follow (Target)
+    const targetUser = await User.findById(req.params.id);
+    // Me (Logged in user)
+    const currentUser = await User.findById(req.user._id);
 
-module.exports = { registerUser, loginUser, updateUserProfile, getUserProfile };
+    if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+    // Check if already following
+    if (targetUser.followers.includes(req.user._id)) {
+      // UNFOLLOW LOGIC
+      await targetUser.updateOne({ $pull: { followers: req.user._id } });
+      await currentUser.updateOne({ $pull: { following: req.params.id } });
+      res.json({ message: "Unfollowed user" });
+    } else {
+      // FOLLOW LOGIC
+      await targetUser.updateOne({ $push: { followers: req.user._id } });
+      await currentUser.updateOne({ $push: { following: req.params.id } });
+      res.json({ message: "Followed user" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+module.exports = { registerUser, loginUser, updateUserProfile, getUserProfile , getUserById, followUser };

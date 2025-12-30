@@ -1,10 +1,25 @@
 const Post = require('../models/Post');
 const Poll = require('../models/Poll');
-const User = require('../models/User'); // <--- Needed for Bookmarks
+const User = require('../models/User');
+const Filter = require('bad-words'); // <--- 1. Import the Filter library
 
-// @desc Create Post
+// Initialize the filter
+const filter = new Filter();
+// Optional: Add specific custom words you want to block
+// filter.addWords('badword1', 'badword2'); 
+
+// @desc Create Post (SECURED)
 const createPost = async (req, res) => {
   const { title, description, tags, image } = req.body;
+
+  // 🛡️ SECURITY CHECK: Profanity Filter
+  if (filter.isProfane(title)) {
+    return res.status(400).json({ message: "⚠️ Title contains inappropriate language." });
+  }
+  if (description && filter.isProfane(description)) {
+    return res.status(400).json({ message: "⚠️ Description contains inappropriate language." });
+  }
+
   try {
     const post = await Post.create({
       user: req.user.id,
@@ -19,9 +34,21 @@ const createPost = async (req, res) => {
   }
 };
 
-// @desc Create Poll
+// @desc Create Poll (SECURED)
 const createPoll = async (req, res) => {
   const { question, options } = req.body;
+
+  // 🛡️ SECURITY CHECK: Profanity Filter
+  if (filter.isProfane(question)) {
+    return res.status(400).json({ message: "⚠️ Question contains inappropriate language." });
+  }
+  // Check every poll option
+  for (let opt of options) {
+    if (filter.isProfane(opt)) {
+      return res.status(400).json({ message: "⚠️ Poll options contain inappropriate language." });
+    }
+  }
+
   try {
     const formattedOptions = options.map(opt => ({ optionText: opt, votes: 0 }));
     const poll = await Poll.create({
@@ -92,9 +119,15 @@ const votePoll = async (req, res) => {
   }
 };
 
-// @desc Add Comment
+// @desc Add Comment (SECURED)
 const addComment = async (req, res) => {
   const { text } = req.body;
+
+  // 🛡️ SECURITY CHECK
+  if (filter.isProfane(text)) {
+    return res.status(400).json({ message: "⚠️ Comment contains inappropriate language." });
+  }
+
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found' });
@@ -121,7 +154,6 @@ const bookmarkPost = async (req, res) => {
     res.json(user.bookmarks);
   } catch (error) { res.status(500).json({ message: error.message }); }
 };
-// ... existing code ...
 
 // @desc Get Single Post or Poll by ID
 const getSingleContent = async (req, res) => {
@@ -142,8 +174,75 @@ const getSingleContent = async (req, res) => {
   }
 };
 
-// UPDATE EXPORTS
+// @desc Delete Post (Owner or Admin)
+const deletePost = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Check ownership: Is the logged-in user the owner? (Or an Admin?)
+    if (post.user.toString() === req.user._id.toString() || req.user.role === 'admin') {
+      await post.deleteOne();
+      res.json({ message: "Post removed successfully" });
+    } else {
+      res.status(401).json({ message: "Not authorized to delete this post" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// ... existing imports and functions ...
+
+// @desc Get Public User Profile by ID
+const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password'); // ❌ Hide Password
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+// @desc Get Posts by Specific User
+const getUserPosts = async (req, res) => {
+  try {
+    const posts = await Post.find({ user: req.params.userId }).sort({ createdAt: -1 });
+    const polls = await Poll.find({ user: req.params.userId }).sort({ createdAt: -1 });
+    
+    // Combine and Sort
+    const content = [...posts.map(p => ({...p._doc, type: 'post'})), ...polls.map(p => ({...p._doc, type: 'poll'}))]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json(content);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+
+
+
+// ✅ CLEAN EXPORTS
 module.exports = { 
-  createPost, createPoll, getFeed, votePost, votePoll, addComment, bookmarkPost, 
-  getSingleContent 
+  createPost, 
+  createPoll, 
+  getFeed, 
+  votePost, 
+  votePoll, 
+  addComment, 
+  bookmarkPost, 
+  getSingleContent, 
+  deletePost,
+  registerUser,
+  loginUser, 
+  getUserById,
+  getUserPosts
 };

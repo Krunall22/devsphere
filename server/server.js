@@ -6,6 +6,9 @@ const cors = require('cors');
 dotenv.config();
 const app = express();
 
+
+app.use('/api/admin', require('./routes/adminRoutes'));
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Allows large JSON payloads (images)

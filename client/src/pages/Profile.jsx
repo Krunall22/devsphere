@@ -1,128 +1,124 @@
 import { useEffect, useState } from "react";
-import { Container, Card, Image, Tabs, Tab, Spinner, Button } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Edit2 } from "lucide-react";
-import Navbar from "../components/Navbar";
+import { Container, Row, Col, Button, Card, Spinner } from "react-bootstrap";
+import { useParams } from "react-router-dom";
 import axios from "axios";
-import PostCard from "../components/PostCard";
-import PollCard from "../components/PollCard";
-import EditProfileModal from "../components/EditProfileModal"; // <--- New Component
-import moment from "moment";
+import PollCard from "../components/PollCard"; // Reusing your card component
 
 const Profile = () => {
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem("userInfo")));
-  const [posts, setPosts] = useState([]);
-  const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
+  const { id } = useParams(); // ID from URL
+  const [profile, setProfile] = useState(null);
+  const [content, setContent] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showEdit, setShowEdit] = useState(false);
+  
+  // Follow State
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
 
-  // Fetch Data
-  const fetchData = async () => {
-    if (!user) return;
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const config = { headers: { Authorization: `Bearer ${userInfo?.token}` } };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 1. Get User Details
+        const { data: user } = await axios.get(`https://devsphere-gz00.onrender.com/api/auth/${id}`);
+        setProfile(user);
+        setFollowersCount(user.followers.length);
+        
+        // 2. Check if I am already following them
+        if (user.followers.includes(userInfo._id)) {
+          setIsFollowing(true);
+        }
+
+        // 3. Get User's Posts
+        const { data: posts } = await axios.get(`https://devsphere-gz00.onrender.com/api/content/user/${id}`, config);
+        setContent(posts);
+        
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching data");
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id, userInfo._id]); // Run when ID changes
+
+  // --- HANDLE FOLLOW CLICK ---
+  const handleFollow = async () => {
     try {
-      const token = user.token;
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-
-      // 1. Get Fresh User Data (To get accurate bookmarks list)
-      const { data: userData } = await axios.get("https://devsphere-gz00.onrender.com/api/auth/profile", config);
-      setUser({ ...userData, token }); // Keep token
-
-      // 2. Get All Posts
-      const { data: allFeed } = await axios.get("https://devsphere-gz00.onrender.com/api/content/feed");
-
-      // 3. Filter My Posts
-      const myPosts = allFeed.filter(p => p.user?._id === userData._id);
-      setPosts(myPosts);
-
-      // 4. Filter Bookmarked Posts (Compare IDs)
-      const saved = allFeed.filter(p => userData.bookmarks.includes(p._id));
-      setBookmarkedPosts(saved);
-
-      setLoading(false);
-    } catch (error) { 
-      console.error(error); 
-      setLoading(false); 
+      await axios.put(`https://devsphere-gz00.onrender.com/api/auth/follow/${id}`, {}, config);
+      
+      // Update UI instantly (Optimistic UI)
+      if (isFollowing) {
+        setFollowersCount(prev => prev - 1);
+        setIsFollowing(false);
+      } else {
+        setFollowersCount(prev => prev + 1);
+        setIsFollowing(true);
+      }
+    } catch (error) {
+      alert("Something went wrong");
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
-
-  if (!user) return <div className="text-center mt-5">Please Login</div>;
+  if (loading) return <Spinner animation="border" className="d-block mx-auto mt-5" />;
 
   return (
-    <>
-      <Navbar />
-      <Container className="d-flex flex-column align-items-center">
-        
-        {/* Back Button */}
-        <div style={{ width: "100%", maxWidth: "600px" }} className="mb-3">
-          <Button as={Link} to="/" variant="outline-secondary" size="sm" className="d-flex align-items-center gap-2" style={{ width: "fit-content" }}>
-            <ArrowLeft size={18} /> Back to Feed
-          </Button>
-        </div>
-
-        {/* Profile Card */}
-        <Card className="text-center p-4 shadow-sm mb-4 border-0 position-relative" style={{ width: "100%", maxWidth: "600px", borderRadius: "15px" }}>
-          
-          {/* Edit Button */}
-          <Button 
-            variant="light" 
-            size="sm" 
-            className="position-absolute top-0 end-0 m-3 rounded-circle shadow-sm"
-            onClick={() => setShowEdit(true)}
-          >
-            <Edit2 size={18} />
-          </Button>
-
-          <Card.Body>
-             <Image 
-               src={user.profilePic || `https://ui-avatars.com/api/?name=${user.name}`} 
-               roundedCircle 
-               width={100} 
-               height={100} 
-               className="mb-3 shadow-sm" 
-               style={{objectFit: 'cover'}}
-             />
-             <h3 className="fw-bold">{user.name}</h3>
-             <p className="text-muted mb-1">{user.email}</p>
-             <small className="text-muted">Joined: {moment(user.joinedDate).format("MMMM Do YYYY")}</small>
-          </Card.Body>
-        </Card>
-
-        {/* Tabs */}
-        <div style={{ width: "100%", maxWidth: "600px" }}>
-          <Tabs defaultActiveKey="posts" className="mb-3 justify-content-center border-bottom-0">
+    <Container className="mt-5">
+      {/* 🟢 PROFILE HEADER */}
+      <Card className="p-4 mb-4 shadow-sm border-0">
+        <Row className="align-items-center">
+          <Col md={3} className="text-center">
+            {/* Avatar */}
+            <div 
+              className="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center mx-auto mb-3" 
+              style={{ width: "100px", height: "100px", fontSize: "2.5rem" }}
+            >
+              {profile?.name?.charAt(0).toUpperCase()}
+            </div>
+          </Col>
+          <Col md={9} className="text-center text-md-start">
+            <h3>{profile?.name}</h3>
+            <p className="text-muted">{profile?.email}</p>
             
-            {/* My Posts Tab */}
-            <Tab eventKey="posts" title={`My Posts (${posts.length})`}>
-              {loading ? <Spinner animation="border" /> : posts.map(p => (
-                 p.type === 'post' 
-                 ? <PostCard key={p._id} post={p} refreshFeed={fetchData} /> 
-                 : <PollCard key={p._id} poll={p} refreshFeed={fetchData} />
-              ))}
-              {posts.length === 0 && !loading && <p className="text-center text-muted">No posts yet.</p>}
-            </Tab>
+            {/* 📊 STATS */}
+            <div className="d-flex gap-4 justify-content-center justify-content-md-start mb-3">
+               <div><strong>{content.length}</strong> Posts</div>
+               <div><strong>{followersCount}</strong> Followers</div>
+               <div><strong>{profile?.following?.length || 0}</strong> Following</div>
+            </div>
+            
+            {/* 🔘 ACTION BUTTONS */}
+            {userInfo._id === profile?._id ? (
+              <Button variant="outline-dark" size="sm">⚙️ Edit Profile</Button>
+            ) : (
+              <Button 
+                variant={isFollowing ? "outline-secondary" : "primary"} 
+                size="sm" 
+                onClick={handleFollow}
+                style={{ width: "120px" }}
+              >
+                {isFollowing ? "Unfollow" : "Follow"}
+              </Button>
+            )}
+          </Col>
+        </Row>
+      </Card>
 
-            {/* Bookmarks Tab - NOW WORKING */}
-            <Tab eventKey="saved" title={`Bookmarks (${bookmarkedPosts.length})`}>
-               {loading ? <Spinner animation="border" /> : bookmarkedPosts.map(p => (
-                  <PostCard key={p._id} post={p} refreshFeed={fetchData} />
-               ))}
-               {bookmarkedPosts.length === 0 && !loading && <p className="text-center text-muted">No bookmarks yet.</p>}
-            </Tab>
-
-          </Tabs>
-        </div>
-      </Container>
-
-      {/* Edit Modal */}
-      <EditProfileModal 
-        show={showEdit} 
-        handleClose={() => setShowEdit(false)} 
-        user={user} 
-        refreshUser={fetchData} 
-      />
-    </>
+      {/* 🟢 POSTS GRID */}
+      <h4 className="mb-3">Posts</h4>
+      <Row>
+        {content.length > 0 ? (
+          content.map((item) => (
+            <Col md={6} lg={4} key={item._id} className="mb-4">
+               <PollCard poll={item} refreshFeed={() => {}} />
+            </Col>
+          ))
+        ) : (
+          <p className="text-muted text-center">No posts yet.</p>
+        )}
+      </Row>
+    </Container>
   );
 };
 
