@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, Badge, Button, Form, Image } from "react-bootstrap";
-import { ThumbsUp, ThumbsDown, MessageSquare, Share2, Bookmark, Send } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, Share2, Bookmark, Send, Trash2 } from "lucide-react"; // Added Trash2
 import moment from "moment";
 import axios from "axios";
 
@@ -11,18 +11,20 @@ const PostCard = ({ post, refreshFeed }) => {
   // Get User Logic
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("userInfo")));
   const token = user?.token;
-  const userId = user?._id; // Needed to check if we already voted
+  const userId = user?._id;
 
   // Check States
   const isBookmarked = user?.bookmarks?.includes(post._id);
   const isLiked = post.upvotes.includes(userId);
   const isDisliked = post.downvotes.includes(userId);
 
+  // --- ACTIONS ---
+
   const handleVote = async (action) => {
     if (!token) return alert("Please login!");
     try {
       await axios.put(`https://devsphere-gz00.onrender.com/api/content/posts/${post._id}/vote`, { action }, { headers: { Authorization: `Bearer ${token}` } });
-      refreshFeed(); // Reload to show new numbers
+      refreshFeed(); 
     } catch (err) { alert("Error voting"); }
   };
 
@@ -31,7 +33,6 @@ const PostCard = ({ post, refreshFeed }) => {
     try {
       const { data: updatedBookmarks } = await axios.put(`https://devsphere-gz00.onrender.com/api/content/posts/${post._id}/bookmark`, {}, { headers: { Authorization: `Bearer ${token}` } });
       
-      // Update Local Storage immediately
       const updatedUser = { ...user, bookmarks: updatedBookmarks };
       localStorage.setItem("userInfo", JSON.stringify(updatedUser));
       setUser(updatedUser); 
@@ -50,9 +51,18 @@ const PostCard = ({ post, refreshFeed }) => {
 
   const handleShare = () => {
     const link = `${window.location.origin}/view/${post._id}`;
-    
     navigator.clipboard.writeText(link);
     alert("Link copied to clipboard! Share it with anyone.");
+  };
+
+  // 🗑️ DELETE FUNCTION (Added Back)
+  const handleDelete = async () => {
+    if (window.confirm("Are you sure you want to delete this post?")) {
+      try {
+        await axios.delete(`https://devsphere-gz00.onrender.com/api/content/${post._id}`, { headers: { Authorization: `Bearer ${token}` } });
+        refreshFeed();
+      } catch (err) { alert("Error deleting post"); }
+    }
   };
 
   return (
@@ -72,14 +82,19 @@ const PostCard = ({ post, refreshFeed }) => {
             </div>
           </div>
           
-          {/* Bookmark Button (Black when active) */}
-          <Button variant="link" className="text-dark p-0" onClick={handleBookmark}>
-            <Bookmark 
-              size={24} 
-              fill={isBookmarked ? "black" : "none"} 
-              color="black"
-            />
-          </Button>
+          <div className="d-flex align-items-center">
+             {/* Bookmark Button */}
+             <Button variant="link" className="text-dark p-0 me-2" onClick={handleBookmark}>
+               <Bookmark size={24} fill={isBookmarked ? "black" : "none"} color="black" />
+             </Button>
+
+             {/* 🗑️ DELETE BUTTON (Only for Owner or Admin) */}
+             {(userId === post.user?._id || user?.role === 'admin') && (
+               <Button variant="link" className="text-danger p-0" onClick={handleDelete}>
+                 <Trash2 size={24} />
+               </Button>
+             )}
+          </div>
         </div>
 
         {/* Post Content */}
@@ -94,50 +109,44 @@ const PostCard = ({ post, refreshFeed }) => {
 
         {/* Tags */}
         <div className="mb-3">
-          {post.tags.map((tag, idx) => <Badge key={idx} bg="light" text="dark" className="me-1 border">#{tag.trim()}</Badge>)}
+          {post.tags && post.tags.map((tag, idx) => <Badge key={idx} bg="light" text="dark" className="me-1 border">#{tag.trim()}</Badge>)}
         </div>
 
         <hr className="my-2"/>
 
-        {/* --- ACTION BUTTONS (Updated for Color) --- */}
-        <div className="d-flex justify-content-between">
+        {/* --- ACTION BUTTONS --- */}
+        <div className="d-flex justify-content-between align-items-center">
           <div className="d-flex gap-2">
             
-            {/* LIKE BUTTON - Turns BLUE */}
+            {/* LIKE */}
             <Button 
-              variant="light" 
-              size="sm" 
-              onClick={() => handleVote('upvote')} 
+              variant="light" size="sm" onClick={() => handleVote('upvote')} 
               className={`d-flex align-items-center gap-1 ${isLiked ? "text-primary fw-bold" : "text-secondary"}`}
             >
-              <ThumbsUp size={18} fill={isLiked ? "currentColor" : "none"} /> 
-              {post.upvotes.length}
+              <ThumbsUp size={18} fill={isLiked ? "currentColor" : "none"} /> {post.upvotes.length}
             </Button>
 
-            {/* DISLIKE BUTTON - Turns RED */}
+            {/* DISLIKE */}
             <Button 
-              variant="light" 
-              size="sm" 
-              onClick={() => handleVote('downvote')} 
+              variant="light" size="sm" onClick={() => handleVote('downvote')} 
               className={`d-flex align-items-center gap-1 ${isDisliked ? "text-danger fw-bold" : "text-secondary"}`}
             >
-              <ThumbsDown size={18} fill={isDisliked ? "currentColor" : "none"} /> 
-              {post.downvotes.length}
+              <ThumbsDown size={18} fill={isDisliked ? "currentColor" : "none"} /> {post.downvotes.length}
             </Button>
 
           </div>
           
-
-<div className="d-flex gap-2">
-  <Button variant="light" size="sm" onClick={() => setShowComments(!showComments)}>
-    <MessageSquare size={18}/> {post.comments.length}
-  </Button>
-  
-  {/* PASTE IT HERE */}
-  <Button variant="light" size="sm" onClick={handleShare} className="d-flex align-items-center gap-1">
-    <Share2 size={18}/> Share
-  </Button>
-</div>
+          <div className="d-flex gap-2">
+            {/* COMMENT TOGGLE */}
+            <Button variant="light" size="sm" onClick={() => setShowComments(!showComments)}>
+              <MessageSquare size={18}/> {post.comments.length}
+            </Button>
+            
+            {/* SHARE */}
+            <Button variant="light" size="sm" onClick={handleShare} className="d-flex align-items-center gap-1">
+              <Share2 size={18}/> Share
+            </Button>
+          </div>
         </div>
 
         {/* Comments Section */}
