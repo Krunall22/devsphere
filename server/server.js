@@ -13,6 +13,11 @@ const hpp = require('hpp');
 dotenv.config();
 const app = express();
 
+// Simple Root Route to check if server is alive
+app.get('/', (req, res) => {
+  res.send('API is running securely 🛡️');
+});
+
 // --- 🔒 SECURITY MIDDLEWARE START ---
 
 // 1. Set Security Headers (The "Helmet")
