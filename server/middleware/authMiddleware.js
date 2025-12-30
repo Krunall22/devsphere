@@ -1,17 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Check if user is Admin
-const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(401).json({ message: 'Not authorized as an admin' });
-  }
-};
-
-// Export both
-module.exports = { protect, admin };
+// 🛡️ 1. Protect Middleware (Verify JWT)
 const protect = async (req, res, next) => {
   let token;
 
@@ -31,4 +21,15 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+// 👑 2. Admin Middleware (Check Role)
+const admin = (req, res, next) => {
+  // Checks if user exists and has the 'admin' role
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(401).json({ message: '⛔ Not authorized as an admin' });
+  }
+};
+
+// 🛡️ 3. Export at the VERY END (Fixes your ReferenceError)
+module.exports = { protect, admin };
