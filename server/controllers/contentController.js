@@ -5,26 +5,6 @@ const Filter = require('bad-words');
 
 const filter = new Filter();
 
-// 1. Create Post
-const createPost = async (req, res) => {
-  const { title, description, tags, image } = req.body;
-  if (filter.isProfane(title) || (description && filter.isProfane(description))) {
-    return res.status(400).json({ message: "⚠️ Inappropriate language detected." });
-  }
-  try {
-    const post = await Post.create({
-      user: req.user._id,
-      title,
-      description,
-      tags: tags ? tags.split(',') : [],
-      image: image || "",
-    });
-    res.status(201).json(post);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
 // 2. Create Poll (RESTORED - Fixes the ReferenceError)
 const createPoll = async (req, res) => {
   const { question, options } = req.body;
@@ -86,6 +66,29 @@ const getUserPosts = async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 };
+
+// 🛡️ Create Post with Profanity Check
+const createPost = async (req, res) => {
+  const { title, description, tags, image } = req.body;
+  
+  if (filter.isProfane(title) || (description && filter.isProfane(description))) {
+    return res.status(400).json({ message: "⚠️ Inappropriate language detected." });
+  }
+
+  try {
+    const post = await Post.create({
+      user: req.user._id,
+      title,
+      description,
+      tags: tags ? tags.split(',') : [],
+      image: image || "",
+    });
+    res.status(201).json(post);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 // Placeholder logic for voting and comments
 const votePost = async (req, res) => res.json({ message: "Vote post logic" });
