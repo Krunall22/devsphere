@@ -9,25 +9,22 @@ const AdminLogin = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      // 1. Login Request
-      const { data } = await axios.post("https://devsphere-gz00.onrender.com/api/auth/login", { email, password });
-
-      // 2. Security Check
-      if (data.role !== "admin") {
-        setError("⛔ You are not an Admin!");
-        return;
-      }
-
-      // 3. Success
-      localStorage.setItem("userInfo", JSON.stringify(data));
-      navigate("/admin/dashboard");
-    } catch (err) {
-      setError("Invalid Credentials");
+const handleLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const { data } = await axios.post("https://devsphere-gz00.onrender.com/api/auth/login", { email, password });
+    
+    // Check if the role is admin before allowing entry
+    if (data.role !== 'admin') {
+      return setError("⛔ You are not an Admin!"); // This is what you see now
     }
-  };
+
+    localStorage.setItem("userInfo", JSON.stringify(data));
+    navigate("/admin/dashboard");
+  } catch (err) {
+    setError(err.response?.data?.message || "Login Failed");
+  }
+};
 
   return (
     <Container className="d-flex justify-content-center align-items-center bg-dark" style={{ height: "100vh", maxWidth: "100%" }}>
