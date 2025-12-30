@@ -50,6 +50,21 @@ const AdminDashboard = () => {
     }
   };
 
+  // Add this specific delete function to your AdminDashboard
+const deleteInappropriateContent = async (postId) => {
+  if (window.confirm("⚠️ This post violates community standards (18+ content). Delete permanently?")) {
+    try {
+      await axios.delete(`https://devsphere-gz00.onrender.com/api/admin/post/${postId}`, {
+        headers: { Authorization: `Bearer ${user.token}` }
+      });
+      alert("Content removed successfully.");
+      fetchPosts(); // Refresh your admin list
+    } catch (err) {
+      alert("Error deleting content.");
+    }
+  }
+};
+
   return (
     <div>
       <h2 className="mb-4">⚡ Control Center</h2>
@@ -93,7 +108,15 @@ const AdminDashboard = () => {
                       >
                         {user.isBlocked ? "Unblock" : "Block User"}
                       </Button>
+
                     )}
+                    <Button 
+  variant="danger" 
+  size="sm" 
+  onClick={() => handleDelete(post._id)}
+>
+  🚨 Remove 18+ Content
+</Button>
                   </td>
                 </tr>
               ))}

@@ -1,18 +1,17 @@
 import { useContext, useState } from "react";
-import { Navbar, Container, Button, Nav, Form, FormControl, ListGroup, Badge } from "react-bootstrap";
+// 🛡️ FIX: Rename the Bootstrap import to RBNavbar to avoid conflict with your function name
+import { Navbar as RBNavbar, Container, Button, Nav, Form, FormControl, ListGroup } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import AuthContext from "../context/AuthContext";
 
-const Navigation = ({ onShowCreate }) => {
+const Navbar = ({ onShowCreate }) => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   
-  // 🔍 State for Search
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
-  // 🔍 Handle Search Typing
   const handleSearch = async (e) => {
     const searchText = e.target.value;
     setQuery(searchText);
@@ -37,18 +36,20 @@ const Navigation = ({ onShowCreate }) => {
   };
 
   return (
-    <Navbar bg="dark" variant="dark" expand="lg" className="mb-4 shadow-sm" sticky="top" style={{ backgroundColor: "#1a1a1a" }}>
+    // 🛡️ FIX: Use RBNavbar here
+    <RBNavbar bg="dark" variant="dark" expand="lg" className="mb-4 shadow-sm" sticky="top" style={{ backgroundColor: "#1a1a1a" }}>
       <Container>
-        {/* Brand Logo */}
-        <Navbar.Brand as={Link} to="/" className="fw-bold fs-4">
+        {/* 🛡️ FIX: Use RBNavbar.Brand here */}
+        <RBNavbar.Brand as={Link} to="/" className="fw-bold fs-4">
           DevSphere 🌍
-        </Navbar.Brand>
+        </RBNavbar.Brand>
 
-        <Navbar.Toggle aria-controls="navbar-nav" />
+        {/* 🛡️ FIX: Use RBNavbar.Toggle here */}
+        <RBNavbar.Toggle aria-controls="navbar-nav" />
 
-        <Navbar.Collapse id="navbar-nav">
+        {/* 🛡️ FIX: Use RBNavbar.Collapse here */}
+        <RBNavbar.Collapse id="navbar-nav">
           
-          {/* 🔍 SEARCH BAR (Centered) */}
           <div className="mx-auto position-relative mt-2 mt-lg-0" style={{ width: "100%", maxWidth: "400px" }}>
             <Form className="d-flex">
               <FormControl
@@ -61,7 +62,6 @@ const Navigation = ({ onShowCreate }) => {
               />
             </Form>
             
-            {/* Search Results Dropdown */}
             {searchResults.length > 0 && (
               <ListGroup className="position-absolute w-100 mt-1 shadow" style={{ zIndex: 1050 }}>
                 {searchResults.map((u) => (
@@ -71,12 +71,11 @@ const Navigation = ({ onShowCreate }) => {
                     as={Link} 
                     to={`/profile/${u._id}`} 
                     onClick={() => {
-                      setSearchResults([]); // Close dropdown on click
-                      setQuery("");         // Clear text
+                      setSearchResults([]);
+                      setQuery("");
                     }}
                     className="d-flex align-items-center bg-dark text-white border-secondary"
                   >
-                    {/* Small Avatar Placeholder */}
                     <div className="bg-primary rounded-circle me-2" style={{width: 30, height: 30}}></div>
                     {u.name}
                   </ListGroup.Item>
@@ -85,28 +84,23 @@ const Navigation = ({ onShowCreate }) => {
             )}
           </div>
 
-          {/* Right Side Menu */}
           <Nav className="ms-auto d-flex align-items-center gap-2 mt-3 mt-lg-0">
             {user ? (
               <>
-                {/* 🛡️ ADMIN BUTTON (Only visible to Admins) */}
                 {user.role === 'admin' && (
                   <Button as={Link} to="/admin/login" variant="danger" size="sm" className="fw-bold">
                     Admin
                   </Button>
                 )}
 
-                {/* Create New Post */}
                 <Button variant="success" onClick={onShowCreate} className="fw-bold">
                   + Create
                 </Button>
 
-                {/* Profile Link */}
                 <Button as={Link} to={`/profile/${user._id}`} variant="outline-light">
                   My Profile
                 </Button>
 
-                {/* Logout */}
                 <Button variant="outline-secondary" onClick={handleLogout}>
                   Logout
                 </Button>
@@ -122,10 +116,10 @@ const Navigation = ({ onShowCreate }) => {
               </>
             )}
           </Nav>
-        </Navbar.Collapse>
+        </RBNavbar.Collapse>
       </Container>
-    </Navbar>
+    </RBNavbar>
   );
 };
 
-export default Navigation;
+export default Navbar;
